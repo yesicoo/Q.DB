@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+		<Nullable>disable</Nullable>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<IncludeSymbols>True</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<PackageOutputPath>..\ResLib</PackageOutputPath>
+		<Authors>XuQing</Authors>
+		<Company>XuQing</Company>
+		<Version>1.0.20</Version>
+		<Title>Q.DB ORM For ClickHouse</Title>
+		<Description>基于Ado.Net支持Lambda表达式操作的轻量ORM ClickHouse数据库支持</Description>
+		<PackageReleaseNotes>更新与删除自动适配mutations_sync</PackageReleaseNotes>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="ClickHouse.Client" Version="6.5.2" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\Q.DB\Q.DB.csproj" />
+	</ItemGroup>
+
+</Project>

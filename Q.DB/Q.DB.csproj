@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>disable</Nullable>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	  <IncludeSymbols>True</IncludeSymbols>
+	  <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	  <PackageOutputPath>..\ResLib</PackageOutputPath>
+	  <Authors>XuQing</Authors>
+	  <Company>XuQing</Company>
+	  <Version>1.0.15</Version>
+	  <Title>Q.DB ORM</Title>
+	  <Description>基于Ado.Net支持Lambda表达式操作的轻量ORM 核心部分</Description>
+	  <PackageReleaseNotes>添加文件流查询返回接口</PackageReleaseNotes>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+	</ItemGroup>
+
+</Project>

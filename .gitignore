@@ -1,0 +1,12 @@
+/Q.DB/obj
+/Q.DB/bin
+/Q.DB.MySql/obj
+/Q.DB.MySql/bin
+/Q.DB.SqlServer/obj
+/Q.DB.SqlServer/bin
+/.vs
+/Q.DB.ClickHouse/obj
+/Q.DB.ClickHouse/bin
+/ResLib
+/Q.DB.Test/bin
+/Q.DB.Test/obj

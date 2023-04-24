@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+	  <Nullable>disable</Nullable>
+	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	  <IncludeSymbols>True</IncludeSymbols>
+	  <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	  <PackageOutputPath>..\ResLib</PackageOutputPath>
+	  <Authors>XuQing</Authors>
+	  <Company>XuQing</Company>
+	  <Version>1.0.5</Version>
+	  <Title>Q.DB ORM For MySql</Title>
+	  <Description>基于Ado.Net支持Lambda表达式操作的轻量ORM MySql数据库支持</Description>
+	  <PackageReleaseNotes>更新组件</PackageReleaseNotes>
+	</PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MySqlConnector" Version="2.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Q.DB\Q.DB.csproj" />
+  </ItemGroup>
+
+</Project>
