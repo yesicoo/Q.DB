@@ -5,20 +5,21 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>disable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	  <IncludeSymbols>True</IncludeSymbols>
-	  <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-	  <PackageOutputPath>..\ResLib</PackageOutputPath>
-	  <Authors>XuQing</Authors>
-	  <Company>XuQing</Company>
-	  <Version>1.0.15</Version>
-	  <Title>Q.DB ORM</Title>
-	  <Description>基于Ado.Net支持Lambda表达式操作的轻量ORM 核心部分</Description>
-	  <PackageReleaseNotes>添加文件流查询返回接口</PackageReleaseNotes>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<IncludeSymbols>True</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<PackageOutputPath>..\ResLib</PackageOutputPath>
+		<Authors>XuQing</Authors>
+		<Company>XuQing</Company>
+		<Version>1.0.17</Version>
+		<Title>Q.DB ORM</Title>
+		<Description>基于Ado.Net支持Lambda表达式操作的轻量ORM 核心部分</Description>
+		<PackageReleaseNotes>修复插入语句不支持返回变更条数的操作返回默认ExecuteNonQuery返回值</PackageReleaseNotes>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
 	</ItemGroup>
 
 </Project>

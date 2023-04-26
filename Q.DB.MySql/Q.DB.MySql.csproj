@@ -13,6 +13,7 @@
 	  <Title>Q.DB ORM For MySql</Title>
 	  <Description>基于Ado.Net支持Lambda表达式操作的轻量ORM MySql数据库支持</Description>
 	  <PackageReleaseNotes>更新组件</PackageReleaseNotes>
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	</PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MySqlConnector" Version="2.2.2" />

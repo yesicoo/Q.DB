@@ -241,7 +241,7 @@ namespace Q.DB.Interface
                 }
             }
 
-            if (!lastIdentity)
+            if (!lastIdentity && string.IsNullOrEmpty(LastIdentitySql))
             {
                 return result;
             }
@@ -297,7 +297,7 @@ namespace Q.DB.Interface
                 }
             }
 
-            if (!lastIdentity)
+            if (!lastIdentity && string.IsNullOrEmpty(LastIdentitySql))
             {
                 return result;
             }
@@ -341,7 +341,7 @@ namespace Q.DB.Interface
                 }
             }
 
-            if (!lastIdentity)
+            if (!lastIdentity && string.IsNullOrEmpty(LastIdentitySql))
             {
                 return result;
             }
@@ -410,7 +410,7 @@ namespace Q.DB.Interface
                 }
             }
 
-            if (!lastIdentity)
+            if (!lastIdentity && string.IsNullOrEmpty(LastIdentitySql))
             {
                 return result;
             }

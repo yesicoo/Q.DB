@@ -83,15 +83,18 @@ namespace Q.DB
                             cache.AutoIncrements.Add(fieldName);
                         }
 
-                        DBFieldInfo qpi = null;
-                        if (qpa.DBType != null)
-                        {
-                            qpi = new DBFieldInfo(item.Name, item.PropertyType, item.SetValue, item.GetValue, fieldName,qpa.Remark, qpa.DBType, qpa.Length, qpa.Nullable);
-                        }
-                        else
-                        {
-                            qpi = new DBFieldInfo(item.Name, item.PropertyType, item.SetValue, item.GetValue, fieldName, qpa.Remark,nullable:qpa.Nullable);
-                        }
+                        DBFieldInfo qpi = new DBFieldInfo(
+                            item.Name,
+                            item.PropertyType,
+                            item.SetValue,
+                            item.GetValue,
+                            fieldName,
+                            qpa.Remark,
+                            dbType: qpa.DBType,
+                            dbLength: qpa.Length,
+                            nullable: (qpa.IsNotNull ? false : (item.PropertyType.IsGenericType && item.PropertyType.GetGenericTypeDefinition().Equals(typeof(Nullable<>))))
+                            );
+
                         cache.PropertyInfos.Add(fieldName, qpi);
                     }
                     else
@@ -99,11 +102,11 @@ namespace Q.DB
                         var IsNullable = item.PropertyType.IsGenericType && item.PropertyType.GetGenericTypeDefinition().Equals(typeof(Nullable<>));
                         if (IsNullable)
                         {
-                            cache.PropertyInfos.Add(item.Name, new DBFieldInfo(item.Name, item.PropertyType.GetGenericArguments()[0], item.SetValue, item.GetValue, item.Name,nullable:true));
+                            cache.PropertyInfos.Add(item.Name, new DBFieldInfo(item.Name, item.PropertyType.GetGenericArguments()[0], item.SetValue, item.GetValue, item.Name, nullable: true));
                         }
                         else
                         {
-                            cache.PropertyInfos.Add(item.Name, new DBFieldInfo(item.Name, item.PropertyType, item.SetValue, item.GetValue, item.Name,nullable:false));
+                            cache.PropertyInfos.Add(item.Name, new DBFieldInfo(item.Name, item.PropertyType, item.SetValue, item.GetValue, item.Name, nullable: false));
                         }
                     }
                 }

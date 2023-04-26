@@ -67,7 +67,7 @@ namespace Q.DB
         /// 是否排除
         /// </summary>
         public bool IsExclude { set; get; } = false;
-        public bool Nullable { set; get; } = true;
+        public bool IsNotNull { set; get; } = false;
         public string Remark { set; get; }
     }
 }

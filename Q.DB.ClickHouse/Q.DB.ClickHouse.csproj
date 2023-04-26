@@ -13,6 +13,7 @@
 		<Title>Q.DB ORM For ClickHouse</Title>
 		<Description>基于Ado.Net支持Lambda表达式操作的轻量ORM ClickHouse数据库支持</Description>
 		<PackageReleaseNotes>更新与删除自动适配mutations_sync</PackageReleaseNotes>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="ClickHouse.Client" Version="6.5.2" />

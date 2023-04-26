@@ -93,7 +93,7 @@ namespace Q.DB.ClickHouse
             else
             {
                 this.DefaultDBName = connstr.Split(';').FirstOrDefault(x => x.ToLower().Contains("database"))?.Split('=')?[1]?.Trim();
-                SqlLogUtil.SendLog(LogType.Msg, "Default DBName:" + this.DefaultDBName);
+                SqlLogUtil.SendLog(LogType.Msg, $"{TypeName} Config DBName:" + this.DefaultDBName);
                 this.ConnStr = connstr;
                 ConnPool = new DBConnPool(this);
             }
