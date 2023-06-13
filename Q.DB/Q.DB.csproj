@@ -11,10 +11,10 @@
 		<PackageOutputPath>..\ResLib</PackageOutputPath>
 		<Authors>XuQing</Authors>
 		<Company>XuQing</Company>
-		<Version>1.0.17</Version>
+		<Version>1.0.21</Version>
 		<Title>Q.DB ORM</Title>
 		<Description>基于Ado.Net支持Lambda表达式操作的轻量ORM 核心部分</Description>
-		<PackageReleaseNotes>修复插入语句不支持返回变更条数的操作返回默认ExecuteNonQuery返回值</PackageReleaseNotes>
+		<PackageReleaseNotes>内联，左联，右联 支持添加表后缀</PackageReleaseNotes>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	</PropertyGroup>
 

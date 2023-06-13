@@ -13,7 +13,7 @@ namespace Q.DB.Test
         [OneTimeSetUp]
         public void Setup()
         {
-            string sqlConnStr = "";
+            string sqlConnStr = "User ID=cqq_dp1rtfq;Password=cqq_fyzs9wl;Host=dev.cheoo.net;Port=3913;Database=cqq_config; Compress=false;Pooling=true;Min Pool Size=0;Max Pool Size=1000;Connection Lifetime=0;Convert Zero Datetime=True;SslMode=none;Allow User Variables=True;AllowLoadLocalInfile=true;";
             Trace.Listeners.Add(new ConsoleTraceListener());
             DBFactory.Instance.RegistEngine(new MySqlEngine(sqlConnStr));
             dbName = "qdb_test_mysql";
@@ -272,12 +272,12 @@ namespace Q.DB.Test
 
 
 
-        [Test, Order(999999)]
-        public void 删除数据库()
-        {
-            DBFactory.Instance.GetEngine().ExecuteNonQuery($"drop DataBase {dbName};");
-            var res = DBFactory.Instance.GetEngine().ExecuteScalar<int>($"select count(*) from information_schema.SCHEMATA where SCHEMA_NAME = '{dbName}'; ");
-            Assert.IsTrue(res == 0, "测试数据库删除成功");
-        }
+        //[Test, Order(999999)]
+        //public void 删除数据库()
+        //{
+        //    DBFactory.Instance.GetEngine().ExecuteNonQuery($"drop DataBase {dbName};");
+        //    var res = DBFactory.Instance.GetEngine().ExecuteScalar<int>($"select count(*) from information_schema.SCHEMATA where SCHEMA_NAME = '{dbName}'; ");
+        //    Assert.IsTrue(res == 0, "测试数据库删除成功");
+        //}
     }
 }

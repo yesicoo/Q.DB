@@ -1,5 +1,7 @@
 /Q.DB/obj
 /Q.DB/bin
+/Q.DB.Demo/obj
+/Q.DB.Demo/bin
 /Q.DB.MySql/obj
 /Q.DB.MySql/bin
 /Q.DB.SqlServer/obj
@@ -7,6 +9,8 @@
 /.vs
 /Q.DB.ClickHouse/obj
 /Q.DB.ClickHouse/bin
+/Q.LogServer/obj
+/Q.LogServer/bin
 /ResLib
 /Q.DB.Test/bin
 /Q.DB.Test/obj

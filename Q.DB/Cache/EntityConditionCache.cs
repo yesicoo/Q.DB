@@ -62,7 +62,7 @@ namespace Q.DB.Cache
 
                 DBName = context.DBName;
                 _dts.AddOrUpdate(DBName, tResult, (oldkey, oldvalue) => tResult);
-                SqlLogUtil.SendLog(LogType.Msg, $"加载 【{DBName}】【{EntityCache.TryGetTableName<T>()}】缓存 共{tResult.Count}条");
+                SqlLogUtil.SendLog(LogType.Msg, $"加载 【{DBName}】【{EntityCache.TryGetRealTableName<T>()}】缓存 共{tResult.Count}条");
                 return tResult;
             }
         }

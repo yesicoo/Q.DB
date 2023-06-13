@@ -29,6 +29,7 @@ using System.Text.Unicode;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Q.DB.Models;
 
 namespace Q.DB.Interface
@@ -241,7 +242,7 @@ namespace Q.DB.Interface
                 }
             }
 
-            if (!lastIdentity && string.IsNullOrEmpty(LastIdentitySql))
+            if (!lastIdentity || string.IsNullOrEmpty(LastIdentitySql))
             {
                 return result;
             }
@@ -297,7 +298,7 @@ namespace Q.DB.Interface
                 }
             }
 
-            if (!lastIdentity && string.IsNullOrEmpty(LastIdentitySql))
+            if (!lastIdentity || string.IsNullOrEmpty(LastIdentitySql))
             {
                 return result;
             }
@@ -341,7 +342,7 @@ namespace Q.DB.Interface
                 }
             }
 
-            if (!lastIdentity && string.IsNullOrEmpty(LastIdentitySql))
+            if (!lastIdentity || string.IsNullOrEmpty(LastIdentitySql))
             {
                 return result;
             }
@@ -410,7 +411,7 @@ namespace Q.DB.Interface
                 }
             }
 
-            if (!lastIdentity && string.IsNullOrEmpty(LastIdentitySql))
+            if (!lastIdentity || string.IsNullOrEmpty(LastIdentitySql))
             {
                 return result;
             }
@@ -805,7 +806,8 @@ namespace Q.DB.Interface
 
         int Insert<T>(DBConnectionItem connectionItem, T t, string tableSuffix, bool InsAutoIncrement = false)
         {
-            ParamSql ps = T2InSql(t, connectionItem.SqlConnection.Database, tableSuffix, InsAutoIncrement);
+            ParamSql ps = T2InSql(t, connectionItem.SqlConnection.Database, InsAutoIncrement);
+            ps.SqlStr = EntityCache.RestoreTableName<T>(ps.SqlStr, tableSuffix);
             return Insert(connectionItem, ps.SqlStr, ps.Params);
         }
 
@@ -824,7 +826,8 @@ namespace Q.DB.Interface
 
         async Task<int> InsertAsync<T>(DBConnectionItem connectionItem, T t, string tableSuffix, bool InsAutoIncrement = false)
         {
-            ParamSql ps = T2InSql(t, connectionItem.SqlConnection.Database, tableSuffix, InsAutoIncrement);
+            ParamSql ps = T2InSql(t, connectionItem.SqlConnection.Database, InsAutoIncrement);
+            ps.SqlStr = EntityCache.RestoreTableName<T>(ps.SqlStr, tableSuffix);
             return await InsertAsync(connectionItem, ps.SqlStr, ps.Params);
         }
 
@@ -906,7 +909,8 @@ namespace Q.DB.Interface
 
         long Insert64<T>(DBConnectionItem connectionItem, T t, string tableSuffix, bool InsAutoIncrement = false)
         {
-            ParamSql ps = T2InSql(t, connectionItem.SqlConnection.Database, tableSuffix, InsAutoIncrement);
+            ParamSql ps = T2InSql(t, connectionItem.SqlConnection.Database, InsAutoIncrement);
+            ps.SqlStr = EntityCache.RestoreTableName<T>(ps.SqlStr, tableSuffix);
             return Insert64(connectionItem, ps.SqlStr, ps.Params);
         }
 
@@ -925,7 +929,8 @@ namespace Q.DB.Interface
 
         async Task<long> Insert64Async<T>(DBConnectionItem connectionItem, T t, string tableSuffix, bool InsAutoIncrement = false)
         {
-            ParamSql ps = T2InSql(t, connectionItem.SqlConnection.Database, tableSuffix, InsAutoIncrement);
+            ParamSql ps = T2InSql(t, connectionItem.SqlConnection.Database, InsAutoIncrement);
+            ps.SqlStr = EntityCache.RestoreTableName<T>(ps.SqlStr, tableSuffix);
             return await Insert64Async(connectionItem, ps.SqlStr, ps.Params);
         }
 
@@ -944,14 +949,16 @@ namespace Q.DB.Interface
                 for (int i = 0; i < batchCount; i++)
                 {
                     var tempdatas = ts.Skip(i * splitCount).Take(splitCount).ToList();
-                    ParamSql ps = Ts2InSql(tempdatas, connectionItem.SqlConnection.Database, tableSuffix, InsAutoIncrement);
+                    ParamSql ps = Ts2InSql(tempdatas, connectionItem.SqlConnection.Database, InsAutoIncrement);
+                    ps.SqlStr=EntityCache.RestoreTableName<T>(ps.SqlStr, tableSuffix);
                     result += Insert(connectionItem, ps.SqlStr, ps.Params, false);
 
                 }
             }
             else
             {
-                ParamSql ps = Ts2InSql(ts, connectionItem.SqlConnection.Database, tableSuffix, InsAutoIncrement);
+                ParamSql ps = Ts2InSql(ts, connectionItem.SqlConnection.Database,InsAutoIncrement);
+                ps.SqlStr = EntityCache.RestoreTableName<T>(ps.SqlStr, tableSuffix);
                 result += Insert(connectionItem, ps.SqlStr, ps.Params, false);
             }
             SqlLogUtil.SendLog(LogType.SQL, "BatchInsert :" + ts.Count, System.Environment.TickCount - st);
@@ -968,13 +975,15 @@ namespace Q.DB.Interface
                 for (int i = 0; i < batchCount; i++)
                 {
                     var tempdatas = ts.Skip(i * splitCount).Take(splitCount).ToList();
-                    ParamSql ps = Ts2InSql(tempdatas, connectionItem.SqlConnection.Database, tableSuffix, InsAutoIncrement);
+                    ParamSql ps = Ts2InSql(tempdatas, connectionItem.SqlConnection.Database, InsAutoIncrement);
+                    ps.SqlStr = EntityCache.RestoreTableName<T>(ps.SqlStr, tableSuffix);
                     result += await InsertAsync(connectionItem, ps.SqlStr, ps.Params);
                 }
             }
             else
             {
-                ParamSql ps = Ts2InSql(ts, connectionItem.SqlConnection.Database, tableSuffix, InsAutoIncrement);
+                ParamSql ps = Ts2InSql(ts, connectionItem.SqlConnection.Database, InsAutoIncrement);
+                ps.SqlStr = EntityCache.RestoreTableName<T>(ps.SqlStr, tableSuffix);
                 result += await InsertAsync(connectionItem, ps.SqlStr, ps.Params);
             }
             SqlLogUtil.SendLog(LogType.SQL, "BatchInsert :" + ts.Count, System.Environment.TickCount - st);
@@ -1594,9 +1603,9 @@ namespace Q.DB.Interface
                         {
                             return (T)Convert.ChangeType(reader.GetValue(0), type);
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
-
+                            SqlLogUtil.SendLog(LogType.Error, ex.ToString());
                             throw;
                         }
                     }
@@ -1625,29 +1634,39 @@ namespace Q.DB.Interface
                         var name = reader.GetName(i);
                         if (ps.TryGetValue(name, out var p))
                         {
+
                             if (!reader.IsDBNull(i))
                             {
+                                var obj = reader.GetValue(i);
                                 if (reader.GetFieldType(i) == p.PropertyType)
                                 {
-                                    p.SetValue(t, reader.GetValue(i));
+                                    p.SetValue(t, obj);
                                 }
                                 else
                                 {
                                     object value = null;
                                     if (p.DBType == "JSONSTR")
                                     {
-                                        value = JsonConvert.DeserializeObject((string)reader.GetValue(i), p.PropertyType);
+                                        value = JsonConvert.DeserializeObject((string)obj, p.PropertyType);
                                     }
                                     else
                                     {
-                                        value = Convert.ChangeType(reader.GetValue(i), p.PropertyType);
+                                        if (p.Nullable)
+                                        {
+
+                                            value = Convert.ChangeType(obj, p.PropertyType.GetGenericArguments()[0]);
+
+                                        }
+                                        else
+                                        {
+                                            value = Convert.ChangeType(obj, p.PropertyType);
+                                        }
                                     }
                                     p.SetValue(t, value);
                                 }
                             }
                             else
                             {
-
                                 p.SetValue(t, default);
                             }
                         }
@@ -1655,13 +1674,13 @@ namespace Q.DB.Interface
                     return t;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                SqlLogUtil.SendLog(LogType.Error, ex.ToString());
                 throw;
             }
         }
-        ParamSql T2InSql<T>(T t, string databaseName, string tableSuffix, bool InsAutoIncrement = false)
+        ParamSql T2InSql<T>(T t, string databaseName, bool InsAutoIncrement = false)
         {
             ParamSql ps = new ParamSql();
             if (t == null) { return null; }
@@ -1712,20 +1731,20 @@ namespace Q.DB.Interface
 
             }
 
-            string sql = string.Format(InsertSQL, EscapeStr(databaseName, nea.TableName + QDBTools.ConvertSuffixTableName(tableSuffix)), sb_Columns.ToString().TrimEnd(','), sb_Values.ToString().TrimEnd(','));
+            string sql = string.Format(InsertSQL, EscapeStr(databaseName, nea.TableName), sb_Columns.ToString().TrimEnd(','), sb_Values.ToString().TrimEnd(','));
 
             ps.SqlStr = sql;
             return ps;
 
 
         }
-        ParamSql Ts2InSql<T>(List<T> ts, string databaseName, string tableSuffix, bool InsAutoIncrement = false)
+        ParamSql Ts2InSql<T>(List<T> ts, string databaseName, bool InsAutoIncrement = false)
         {
             ParamSql ps = new ParamSql();
             if (ts == null || ts.Count == 0) { return null; }
             var nea = EntityCache.TryGetInfo<T>();
             ValueStringBuilder sb_SQL = new ValueStringBuilder(ts.Count * 128);
-            sb_SQL.Append($"Insert into {EscapeStr(databaseName, nea.TableName + QDBTools.ConvertSuffixTableName(tableSuffix))} (");
+            sb_SQL.Append($"Insert into {EscapeStr(databaseName, nea.TableName)} (");
 
             bool haveValue = false;
             foreach (var item in nea.PropertyInfos)
@@ -1848,7 +1867,7 @@ namespace Q.DB.Interface
         }
 
         //兼容clickhouse
-        string CreateDelSql(string dbTable, string whereStr,bool IsSync=true)
+        string CreateDelSql(string dbTable, string whereStr, bool IsSync = true)
         {
             return $"Delete from {dbTable} where {whereStr}";
         }

@@ -9,14 +9,14 @@
 	  <PackageOutputPath>..\ResLib</PackageOutputPath>
 	  <Authors>XuQing</Authors>
 	  <Company>XuQing</Company>
-	  <Version>1.0.5</Version>
+	  <Version>1.0.7</Version>
 	  <Title>Q.DB ORM For MySql</Title>
 	  <Description>基于Ado.Net支持Lambda表达式操作的轻量ORM MySql数据库支持</Description>
-	  <PackageReleaseNotes>更新组件</PackageReleaseNotes>
+	  <PackageReleaseNotes>修复表后缀导致查询带条件异常</PackageReleaseNotes>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	</PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MySqlConnector" Version="2.2.2" />
+    <PackageReference Include="MySqlConnector" Version="2.2.6" />
   </ItemGroup>
 
   <ItemGroup>

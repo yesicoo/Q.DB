@@ -119,10 +119,246 @@ namespace Q.DB.ClickHouse
             return sql += " limit " + count;
         }
 
+        #region 重写接口ExecuteNonQuery方法 支持多语句
+
+
+        public int ExecuteNonQuery(DBConnectionItem connectionItem, string text, IEnumerable<ParamItem> dbParameters = null, bool IsProcedure = false, bool lastIdentity = false)
+        {
+            var sqls = sqlSplit(text);
+            if (!IsProcedure && sqls.Count > 1)
+            {
+                int res = 0;
+                foreach (var sql in sqls)
+                {
+                    res = ((IDBEngine)this).ExecuteNonQuery(sql, dbParameters, IsProcedure, lastIdentity);
+                }
+                return res;
+            }
+            else
+            {
+
+                long ts = System.Environment.TickCount64;
+                int result = 0;
+                using (var command = connectionItem.SqlConnection.CreateCommand())
+                {
+                    command.CommandText = text;
+                    command.CommandType = IsProcedure ? System.Data.CommandType.StoredProcedure : System.Data.CommandType.Text;
+                    if (dbParameters != null)
+                    {
+                        foreach (var item in dbParameters)
+                        {
+                            var parameter = command.CreateParameter();
+                            parameter.DbType = item.DbType;
+                            parameter.ParameterName = item.Name;
+                            parameter.Value = item.Value;
+                            command.Parameters.Add(parameter);
+                        }
+                    }
+
+                    try
+                    {
+                        result = command.ExecuteNonQuery();
+                        long tick = System.Environment.TickCount64 - ts;
+                        SqlLogUtil.SendLog(LogType.SQL, text, tick);
+                    }
+                    catch (Exception ex)
+                    {
+                        long tick = System.Environment.TickCount64 - ts;
+                        SqlLogUtil.SendLog(LogType.Error, text + "\r\n ErrorMsg:\r\n" + ex.Message, tick);
+                        throw;
+                    }
+                }
+
+                if (!lastIdentity || string.IsNullOrEmpty(LastIdentitySql))
+                {
+                    return result;
+                }
+                else
+                {
+                    return ((IDBEngine)this).ExecuteScalar<int>(connectionItem, LastIdentitySql, null);
+                }
+            }
+        }
+
+        public long ExecuteNonQuery64(DBConnectionItem connectionItem, string text, IEnumerable<ParamItem> dbParameters = null, bool IsProcedure = false, bool lastIdentity = false)
+        {
+            var sqls = sqlSplit(text);
+
+            if (!IsProcedure && sqls.Count > 1)
+            {
+                long res = 0;
+                foreach (var sql in sqls)
+                {
+                    res = ((IDBEngine)this).ExecuteNonQuery64(sql, dbParameters, IsProcedure, lastIdentity);
+                }
+                return res;
+            }
+            else
+            {
+                long ts = System.Environment.TickCount64;
+                long result = 0;
+                using (var command = connectionItem.SqlConnection.CreateCommand())
+                {
+                    command.CommandText = text;
+                    command.CommandType = IsProcedure ? System.Data.CommandType.StoredProcedure : System.Data.CommandType.Text;
+                    if (dbParameters != null)
+                    {
+                        foreach (var item in dbParameters)
+                        {
+                            var parameter = command.CreateParameter();
+                            parameter.DbType = item.DbType;
+                            parameter.ParameterName = item.Name;
+                            parameter.Value = item.Value;
+                            command.Parameters.Add(parameter);
+                        }
+                    }
+
+                    try
+                    {
+                        result = command.ExecuteNonQuery();
+                        long tick = System.Environment.TickCount64 - ts;
+                        SqlLogUtil.SendLog(LogType.SQL, text, tick);
+                    }
+                    catch (Exception ex)
+                    {
+                        long tick = System.Environment.TickCount64 - ts;
+                        SqlLogUtil.SendLog(LogType.Error, text + "\r\n ErrorMsg:\r\n" + ex.Message, tick);
+                        throw;
+                    }
+                }
+
+                if (!lastIdentity || string.IsNullOrEmpty(LastIdentitySql))
+                {
+                    return result;
+                }
+                else
+                {
+                    return ((IDBEngine)this).ExecuteScalar<long>(connectionItem, LastIdentitySql, null);
+                }
+            }
+        }
+
+        public async Task<int> ExecuteNonQueryAsync(DBConnectionItem connectionItem, string text, IEnumerable<ParamItem> dbParameters = null, bool IsProcedure = false, bool lastIdentity = false)
+        {
+            var sqls = sqlSplit(text);
+            if (!IsProcedure && sqls.Count>1)
+            {
+                int res = 0;
+                foreach (var sql in sqls)
+                {
+                    res = await ((IDBEngine)this).ExecuteNonQueryAsync(sql, dbParameters, IsProcedure, lastIdentity);
+                }
+                return res;
+            }
+            else
+            {
+                long ts = System.Environment.TickCount64;
+                int result = 0;
+                using (var command = connectionItem.SqlConnection.CreateCommand())
+                {
+                    command.CommandText = text;
+                    command.CommandType = IsProcedure ? System.Data.CommandType.StoredProcedure : System.Data.CommandType.Text;
+                    if (dbParameters != null)
+                    {
+                        foreach (var item in dbParameters)
+                        {
+                            var parameter = command.CreateParameter();
+                            parameter.DbType = item.DbType;
+                            parameter.ParameterName = item.Name;
+                            parameter.Value = item.Value;
+                            command.Parameters.Add(parameter);
+                        }
+                    }
+
+                    try
+                    {
+                        result = await command.ExecuteNonQueryAsync();
+                        long tick = System.Environment.TickCount64 - ts;
+                        SqlLogUtil.SendLog(LogType.SQL, text, tick);
+                    }
+                    catch (Exception ex)
+                    {
+                        long tick = System.Environment.TickCount64 - ts;
+                        SqlLogUtil.SendLog(LogType.Error, text + "\r\n ErrorMsg:\r\n" + ex.Message, tick);
+                        throw;
+                    }
+                }
+
+                if (!lastIdentity || string.IsNullOrEmpty(LastIdentitySql))
+                {
+                    return result;
+                }
+                else
+                {
+                    return await ((IDBEngine)this).ExecuteScalarAsync<int>(connectionItem, LastIdentitySql, null);
+                }
+            }
+        }
+
+        public async Task<long> ExecuteNonQuery64Async(DBConnectionItem connectionItem, string text, IEnumerable<ParamItem> dbParameters = null, bool IsProcedure = false, bool lastIdentity = false)
+        {
+            var sqls = sqlSplit(text);
+            if (!IsProcedure && sqls.Count>1)
+            {
+               
+                long res = 0;
+                foreach (var sql in sqls)
+                {
+                    res = await ((IDBEngine)this).ExecuteNonQuery64Async(sql, dbParameters, IsProcedure, lastIdentity);
+                }
+                return res;
+            }
+            else
+            {
+                long ts = System.Environment.TickCount64;
+                long result = 0;
+                using (var command = connectionItem.SqlConnection.CreateCommand())
+                {
+                    command.CommandText = text;
+                    command.CommandType = IsProcedure ? System.Data.CommandType.StoredProcedure : System.Data.CommandType.Text;
+                    if (dbParameters != null)
+                    {
+                        foreach (var item in dbParameters)
+                        {
+                            var parameter = command.CreateParameter();
+                            parameter.DbType = item.DbType;
+                            parameter.ParameterName = item.Name;
+                            parameter.Value = item.Value;
+                            command.Parameters.Add(parameter);
+                        }
+                    }
+
+                    try
+                    {
+                        result = await command.ExecuteNonQueryAsync();
+                        long tick = System.Environment.TickCount64 - ts;
+                        SqlLogUtil.SendLog(LogType.SQL, text, tick);
+                    }
+                    catch (Exception ex)
+                    {
+                        long tick = System.Environment.TickCount64 - ts;
+                        SqlLogUtil.SendLog(LogType.Error, text + "\r\n ErrorMsg:\r\n" + ex.Message, tick);
+                        throw;
+                    }
+                }
+
+                if (!lastIdentity || string.IsNullOrEmpty(LastIdentitySql))
+                {
+                    return result;
+                }
+                else
+                {
+                    return await ((IDBEngine)this).ExecuteScalarAsync<long>(connectionItem, LastIdentitySql, null);
+                }
+            }
+        }
+        #endregion
+
+
         public long BulkInsert<T>(DBConnectionItem connectionItem, List<T> ts, string tableSuffix, int splitCount)
         {
             var nea = EntityCache.TryGetInfo<T>();
-            var tableName = nea.TableName + QDBTools.ConvertSuffixTableName(tableSuffix);
+            var tableName = nea.TableRealName + QDBTools.ConvertSuffixTableName(tableSuffix);
             using var bulkCopyInterface = new ClickHouseBulkCopy((ClickHouseConnection)connectionItem.SqlConnection)
             {
 
@@ -146,7 +382,7 @@ namespace Q.DB.ClickHouse
         public async Task<long> BulkInsertAsync<T>(DBConnectionItem connectionItem, List<T> ts, string tableSuffix, int splitCount)
         {
             var nea = EntityCache.TryGetInfo<T>();
-            var tableName = nea.TableName + QDBTools.ConvertSuffixTableName(tableSuffix);
+            var tableName = nea.TableRealName + QDBTools.ConvertSuffixTableName(tableSuffix);
             using var bulkCopyInterface = new ClickHouseBulkCopy((ClickHouseConnection)connectionItem.SqlConnection)
             {
 
@@ -470,6 +706,29 @@ namespace Q.DB.ClickHouse
         public string CreateUpdateSql(string dbTable, string setStr, string whereStr, bool isSync = false)
         {
             return $"set mutations_sync={(isSync ? 2 : 0)}; ALTER TABLE {dbTable} UPDATE {setStr} where {whereStr};";
+        }
+
+        private List<string> sqlSplit(string sql)
+        {
+            List<string> sqls = new();
+            char[] delimiterChars = { ';' };
+            string[] statements = sql.Split(delimiterChars);
+
+            for (int i = 0; i < statements.Length; i++)
+            {
+                string statement = statements[i].Trim();
+
+                if (statement.Length > 0)
+                {
+                    if (i < statements.Length - 1 && statement.EndsWith("'"))
+                    {
+                        statement += ";" + statements[++i].Trim();
+                    }
+
+                    sqls.Add(statement);
+                }
+            }
+            return sqls;
         }
     }
 }

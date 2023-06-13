@@ -160,12 +160,12 @@ namespace Q.DB
             return tasbSuffixStr;
         }
 
-        internal static ParamSql CreateCompareChangeSql<T>(T dest, T source, Expression<Func<T, bool>> where, IDBEngine DBEngine, string tableSuffix = null)
+        internal static ParamSql CreateCompareChangeSql<T>(T dest, T source, Expression<Func<T, bool>> where, IDBEngine DBEngine)
         {
             bool changed = false;
             ParamSql ps = new ParamSql();
             var nea = EntityCache.TryGetInfo<T>();
-            string tableName = DBEngine.EscapeStr(nea.TableName + ConvertSuffixTableName(tableSuffix));
+            string tableName = DBEngine.EscapeStr(nea.TableName);
             StringBuilder sb_SQL = new StringBuilder(string.Format($"Update {tableName} set "));
             PropertyInfo[] pros = dest.GetType().GetProperties();
             foreach (var item in nea.PropertyInfos)
@@ -217,11 +217,8 @@ namespace Q.DB
                 var sqlWhere = ExpressionResolver.ResolveExpression(where.Body, DBEngine);
                 ps.Params.AddRange(sqlWhere.Params);
                 string whereSql = sqlWhere.SqlStr;
-                if (!string.IsNullOrEmpty(tableSuffix))
-                {
-                    whereSql = whereSql.Replace(DBEngine.EscapeStr(nea.Name), tableName);
-                }
                 ps.SqlStr = $"{sb_SQL.ToString().TrimEnd(',')}  where {whereSql};";
+               
             }
             else
             {

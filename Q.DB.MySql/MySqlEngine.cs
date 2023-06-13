@@ -93,7 +93,7 @@ namespace Q.DB.MySql
         public long BulkInsert<T>(DBConnectionItem connectionItem, List<T> ts, string tableSuffix, int splitCount)
         {
 
-            var tableName = EntityCache.TryGetTableName<T>() + QDBTools.ConvertSuffixTableName(tableSuffix);
+            var tableName = EntityCache.TryGetRealTableName<T>() + QDBTools.ConvertSuffixTableName(tableSuffix);
             string tempFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{tableName}_{QDBTools.RandomCode(8, 0)}.sqlLocal");
             var felids = QDBTools.ConvertToInsertCvsWriteToFile(ts, tempFile);
             long st = System.Environment.TickCount;
@@ -116,7 +116,7 @@ namespace Q.DB.MySql
 
         public async Task<long> BulkInsertAsync<T>(DBConnectionItem connectionItem, List<T> ts, string tableSuffix, int splitCount)
         {
-            var tableName = EntityCache.TryGetTableName<T>() + QDBTools.ConvertSuffixTableName(tableSuffix);
+            var tableName = EntityCache.TryGetRealTableName<T>() + QDBTools.ConvertSuffixTableName(tableSuffix);
 
             string tempFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{tableName}_{QDBTools.RandomCode(8, 0)}.sqlLocal");
             var felids = QDBTools.ConvertToInsertCvsWriteToFile(ts, tempFile);

@@ -28,6 +28,7 @@ namespace Q.DB.Models
 
         public string Name { set; get; }
         public string TableName { set; get; }
+        public string TableRealName { set; get; }
         public string Remark { get; set; }
 
         public List<string> PrimaryKeys { get; set; } = new List<string>();

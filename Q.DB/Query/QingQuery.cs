@@ -31,16 +31,21 @@ namespace Q.DB.Query
         public List<ParamItem> SqlParams = new List<ParamItem>();
         public DBConnectionItem dbConnection;
         public IDBEngine DBEngine;
+        private EntityInfo TEntityInfo = null;
+        private string tableName = "";
         public QingQuery(IDBEngine dbengine, DBConnectionItem connection, string tableSuffix = null)
         {
             DBEngine = dbengine;
             dbConnection = connection;
             TableSuffix = tableSuffix;
+            TEntityInfo = EntityCache.TryGetInfo<T>();
+            tableName = TEntityInfo.TableName;
         }
         public TResult Avg<TResult>(Expression<Func<T, TResult>> expression)
         {
             var ps = ExpressionResolver.ResolveExpression(expression.Body, DBEngine);
             string sql = BuildSql_Custom_Fields_Func("Avg(" + ps.SqlStr + ")");
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.ExecuteScalar<TResult>(dbConnection, sql, SqlParams);
         }
 
@@ -48,6 +53,7 @@ namespace Q.DB.Query
         {
             var ps = ExpressionResolver.ResolveExpression(expression.Body, DBEngine);
             string sql = BuildSql_Custom_Fields_Func("Avg(" + ps.SqlStr + ")");
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return await DBEngine.ExecuteScalarAsync<TResult>(dbConnection, sql, SqlParams);
         }
 
@@ -79,6 +85,7 @@ namespace Q.DB.Query
             {
                 sql = $"select Count(*) from ({BuildSql_Custom_Fields_Func("Count(*)")}) as TempTable";
             }
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             var result = DBEngine.ExecuteScalar<int>(dbConnection, sql, SqlParams);
             SqlLogUtil.SendLog(LogType.SQL, sql, System.Environment.TickCount64 - st);
             return result;
@@ -96,6 +103,7 @@ namespace Q.DB.Query
             {
                 sql = $"select Count(*) from ({BuildSql_Custom_Fields_Func("Count(*)")}) as TempTable";
             }
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             var result = await DBEngine.ExecuteScalarAsync<int>(dbConnection, sql, SqlParams);
             SqlLogUtil.SendLog(LogType.SQL, sql, System.Environment.TickCount64 - st);
             return result;
@@ -112,6 +120,7 @@ namespace Q.DB.Query
             {
                 sql = $"select Count(*) from ({BuildSql_Custom_Fields_Func("Count(*)")}) as TempTable";
             }
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             var result = DBEngine.ExecuteScalar<long>(dbConnection, sql, SqlParams);
             SqlLogUtil.SendLog(LogType.SQL, sql, System.Environment.TickCount64 - st);
             return result;
@@ -129,6 +138,7 @@ namespace Q.DB.Query
             {
                 sql = $"select Count(*) from ({BuildSql_Custom_Fields_Func("Count(*)")}) as TempTable";
             }
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             var result = await DBEngine.ExecuteScalarAsync<long>(dbConnection, sql, SqlParams);
             SqlLogUtil.SendLog(LogType.SQL, sql, System.Environment.TickCount64 - st);
             return result;
@@ -140,30 +150,41 @@ namespace Q.DB.Query
 
         }
 
-        public IQingQuery<T, T2> InnerJoin<T2>(Expression<Func<T, T2, bool>> expressionJoinOn)
+        public IQingQuery<T, T2> InnerJoin<T2>(Expression<Func<T, T2, bool>> expressionJoinOn,string t2TableSuffix=null)
         {
             var tableName = EntityCache.TryGetTableName<T2>();
             var jps = ExpressionResolver.ResolveJoinExpression(this, expressionJoinOn);
             SqlParams.AddRange(jps.Params);
             string joinStr = $" Inner Join {DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName)} on ({jps.SqlStr})";
 
-            return new QingQuery<T, T2>(this, joinStr, SqlParams);
+            return new QingQuery<T, T2>(this, joinStr, SqlParams, t2TableSuffix);
         }
 
-        public IQingQuery<T, T2> LeftJoin<T2>(Expression<Func<T, T2, bool>> expressionJoinOn)
+        public IQingQuery<T, T2> LeftJoin<T2>(Expression<Func<T, T2, bool>> expressionJoinOn, string t2TableSuffix = null)
         {
             var tableName = EntityCache.TryGetTableName<T2>();
             var jps = ExpressionResolver.ResolveJoinExpression(this, expressionJoinOn);
             SqlParams.AddRange(jps.Params);
             string joinStr = $" Left Join {DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName)} on ({jps.SqlStr})";
 
-            return new QingQuery<T, T2>(this, joinStr, SqlParams);
+            return new QingQuery<T, T2>(this, joinStr, SqlParams, t2TableSuffix);
+        }
+        public IQingQuery<T, T2> RightJoin<T2>(Expression<Func<T, T2, bool>> expressionJoinOn, string t2TableSuffix = null)
+        {
+            var tableName = EntityCache.TryGetTableName<T2>();
+            var jps = ExpressionResolver.ResolveJoinExpression(this, expressionJoinOn);
+            SqlParams.AddRange(jps.Params);
+            string joinStr = $" Right Join {DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName)} on ({jps.SqlStr})";
+
+            return new QingQuery<T, T2>(this, joinStr, SqlParams, t2TableSuffix);
         }
 
         public TResult Max<TResult>(Expression<Func<T, TResult>> expression)
         {
             ExpressionResolver.ResolveMaxExpression(this, expression);
             string sql = BuildSql();
+
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.ExecuteScalar<TResult>(dbConnection, sql, SqlParams);
         }
 
@@ -171,6 +192,7 @@ namespace Q.DB.Query
         {
             ExpressionResolver.ResolveMaxExpression(this, expression);
             string sql = BuildSql();
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return await DBEngine.ExecuteScalarAsync<TResult>(dbConnection, sql, SqlParams);
         }
 
@@ -178,6 +200,7 @@ namespace Q.DB.Query
         {
             ExpressionResolver.ResolveMinExpression(this, expression);
             string sql = BuildSql();
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.ExecuteScalar<TResult>(dbConnection, sql, SqlParams);
         }
 
@@ -185,6 +208,7 @@ namespace Q.DB.Query
         {
             ExpressionResolver.ResolveMinExpression(this, expression);
             string sql = BuildSql();
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return await DBEngine.ExecuteScalarAsync<TResult>(dbConnection, sql, SqlParams);
         }
 
@@ -212,12 +236,15 @@ namespace Q.DB.Query
         public IEnumerable<T> QueryAll()
         {
             string sql = BuildSql();
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.Query<T>(dbConnection, sql, SqlParams);
         }
 
         public IEnumerable<TResult> QueryAll<TResult>()
         {
             string sql = BuildSql();
+
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.Query<TResult>(dbConnection, sql, SqlParams);
         }
 
@@ -230,12 +257,14 @@ namespace Q.DB.Query
         public IAsyncEnumerable<T> QueryAllAsync()
         {
             string sql = BuildSql();
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.QueryAsync<T>(dbConnection, sql, SqlParams);
         }
 
         public IAsyncEnumerable<TResult> QueryAllAsync<TResult>()
         {
             string sql = BuildSql();
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.QueryAsync<TResult>(dbConnection, sql, SqlParams);
         }
 
@@ -248,12 +277,14 @@ namespace Q.DB.Query
         public T QueryFirst()
         {
             string sql = BuildSql_Custom_LimitCount(1);
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.QueryFirst<T>(dbConnection, sql, SqlParams);
         }
 
         public TResult QueryFirst<TResult>()
         {
             string sql = BuildSql_Custom_LimitCount(1);
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.QueryFirst<TResult>(dbConnection, sql, SqlParams);
         }
 
@@ -266,12 +297,14 @@ namespace Q.DB.Query
         public async Task<T> QueryFirstAsync()
         {
             string sql = BuildSql_Custom_LimitCount(1);
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return await DBEngine.QueryFirstAsync<T>(dbConnection, sql, SqlParams);
         }
 
         public async Task<TResult> QueryFirstAsync<TResult>()
         {
             string sql = BuildSql_Custom_LimitCount(1);
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return await DBEngine.QueryFirstAsync<TResult>(dbConnection, sql, SqlParams);
         }
 
@@ -382,30 +415,35 @@ namespace Q.DB.Query
         public IEnumerable<T> QueryTop(int top = 1)
         {
             string sql = BuildSql_Custom_LimitCount(top);
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.Query<T>(dbConnection, sql, SqlParams);
         }
 
         public IEnumerable<TResult> QueryTop<TResult>(int top = 1)
         {
             string sql = BuildSql_Custom_LimitCount(top);
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.Query<TResult>(dbConnection, sql, SqlParams);
         }
 
         public IAsyncEnumerable<T> QueryTopAsync(int top = 1)
         {
             string sql = BuildSql_Custom_LimitCount(top);
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.QueryAsync<T>(dbConnection, sql, SqlParams);
         }
 
         public IAsyncEnumerable<TResult> QueryTopAsync<TResult>(int top = 1)
         {
             string sql = BuildSql_Custom_LimitCount(top);
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.QueryAsync<TResult>(dbConnection, sql, SqlParams);
         }
 
         public IEnumerable<T> QueryWithPage(int pageNum, int pageSize)
         {
             var sql = BuildSql_Custom_LimitPage(pageNum, pageSize);
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.Query<T>(dbConnection, sql, SqlParams);
 
         }
@@ -413,47 +451,41 @@ namespace Q.DB.Query
         public IEnumerable<TResult> QueryWithPage<TResult>(int pageNum, int pageSize)
         {
             var sql = BuildSql_Custom_LimitPage(pageNum, pageSize);
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.Query<TResult>(dbConnection, sql, SqlParams);
         }
 
         public IAsyncEnumerable<T> QueryWithPageAsync(int pageNum, int pageSize)
         {
             var sql = BuildSql_Custom_LimitPage(pageNum, pageSize);
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.QueryAsync<T>(dbConnection, sql, SqlParams);
         }
 
         public IAsyncEnumerable<TResult> QueryWithPageAsync<TResult>(int pageNum, int pageSize)
         {
             var sql = BuildSql_Custom_LimitPage(pageNum, pageSize);
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.QueryAsync<TResult>(dbConnection, sql, SqlParams);
         }
 
         public int Remove(Expression<Func<T, bool>> expression)
         {
             ExpressionResolver.ResolveWhereExpression(this, expression);
-            var tableName = EntityCache.TryGetTableName<T>();
+            string dbTable = DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName);
+            string sql = DBEngine.CreateDelSql(dbTable, WhereStr, true);
 
-            //string sql = $"Delete from {DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName + QDBTools.ConvertSuffixTableName(TableSuffix))} where {WhereStr} ";
-            string dbTable = DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName + QDBTools.ConvertSuffixTableName(TableSuffix));
-            string sql = DBEngine.CreateDelSql(dbTable, WhereStr,true);
-            if (!string.IsNullOrEmpty(TableSuffix))
-            {
-                string oldTableName = DBEngine.EscapeStr(tableName);
-                string newTableName = DBEngine.EscapeStr(tableName + QDBTools.ConvertSuffixTableName(TableSuffix));
-                sql = sql.Replace(oldTableName, newTableName);
-            }
-
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.ExecuteNonQuery(dbConnection, sql, SqlParams);
         }
 
         public async Task<int> RemoveAsync(Expression<Func<T, bool>> expression)
         {
             ExpressionResolver.ResolveWhereExpression(this, expression);
-            var tableName = EntityCache.TryGetTableName<T>();
 
-            // string sql = $"Delete from {DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName + QDBTools.ConvertSuffixTableName(TableSuffix))} where {WhereStr} ";
-            string dbTable = DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName + QDBTools.ConvertSuffixTableName(TableSuffix));
-            string sql = DBEngine.CreateDelSql(dbTable, WhereStr,false);
+            string dbTable = DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName );
+            string sql = DBEngine.CreateDelSql(dbTable, WhereStr, false);
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return await DBEngine.ExecuteNonQueryAsync(dbConnection, sql, SqlParams);
         }
 
@@ -461,7 +493,6 @@ namespace Q.DB.Query
 
         public IQingQuery<T> ResolveFilterCondition(SqlFilter fc)
         {
-            var nea = EntityCache.TryGetInfo<T>();
 
             if (fc.OrWhere.Count > 0)
             {
@@ -469,7 +500,7 @@ namespace Q.DB.Query
                 foreach (var item in fc.OrWhere)
                 {
                     ParamSql ps = new ParamSql();
-                    if (nea.PropertyInfos.ContainsKey(item.FieldName))
+                    if (TEntityInfo.PropertyInfos.ContainsKey(item.FieldName))
                     {
                         (string key, string skey) = DBEngine.EscapeParamKey();
                         ps.SqlStr = $"({item.FieldName} {item.Condition} {skey})";
@@ -494,7 +525,7 @@ namespace Q.DB.Query
             {
                 foreach (var item in fc.AndWhere)
                 {
-                    if (nea.PropertyInfos.ContainsKey(item.FieldName))
+                    if (TEntityInfo.PropertyInfos.ContainsKey(item.FieldName))
                     {
                         this.WhereStr += string.IsNullOrEmpty(this.WhereStr) ? "" : " and ";
                         (string key, string skey) = DBEngine.EscapeParamKey();
@@ -508,7 +539,7 @@ namespace Q.DB.Query
             {
                 foreach (var item in fc.Orders)
                 {
-                    if (nea.PropertyInfos.ContainsKey(item.FieldName))
+                    if (TEntityInfo.PropertyInfos.ContainsKey(item.FieldName))
                     {
                         this.OrderByStr += $",{item.FieldName}{(item.Desc ? " Desc" : "")}";
                     }
@@ -517,15 +548,7 @@ namespace Q.DB.Query
             return this;
         }
 
-        public IQingQuery<T, T2> RightJoin<T2>(Expression<Func<T, T2, bool>> expressionJoinOn)
-        {
-            var tableName = EntityCache.TryGetTableName<T2>();
-            var jps = ExpressionResolver.ResolveJoinExpression(this, expressionJoinOn);
-            SqlParams.AddRange(jps.Params);
-            string joinStr = $" Right Join {DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName)} on ({jps.SqlStr})";
-
-            return new QingQuery<T, T2>(this, joinStr, SqlParams);
-        }
+      
         public QingUnionQuery<TResult> UnionSelect<TResult>(Expression<Func<T, TResult>> expressionNew, Expression<Func<T, bool>> expressionWhere)
         {
             ExpressionResolver.ResolveWhereExpression(this, expressionWhere);
@@ -533,6 +556,7 @@ namespace Q.DB.Query
             Fields = result.SqlStr;
             SqlParams.AddRange(result.Params);
             var sql = BuildSql();
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return new QingUnionQuery<TResult>(DBEngine, dbConnection, sql, SqlParams);
         }
 
@@ -550,6 +574,7 @@ namespace Q.DB.Query
         {
             var ps = ExpressionResolver.ResolveExpression(expression.Body, DBEngine);
             string sql = BuildSql_Custom_Fields_Func("Sum(" + ps.SqlStr + ")");
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.ExecuteScalar<TResult>(dbConnection, sql, SqlParams);
         }
 
@@ -557,12 +582,12 @@ namespace Q.DB.Query
         {
             var ps = ExpressionResolver.ResolveExpression(expression.Body, DBEngine);
             string sql = BuildSql_Custom_Fields_Func("Sum(" + ps.SqlStr + ")");
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return await DBEngine.ExecuteScalarAsync<TResult>(dbConnection, sql, SqlParams);
         }
 
         public int Update<TResult>(Expression<Func<T, TResult>> expressionNew, Expression<Func<T, bool>> expressionWhere)
         {
-            var tableName = EntityCache.TryGetTableName<T>();
 
             ParamSql ps = new ParamSql();
             var dic_update = ExpressionResolver.ResolveUpdateExpression(expressionNew, DBEngine);
@@ -576,17 +601,15 @@ namespace Q.DB.Query
             var ps_where = ExpressionResolver.ResolveExpression(expressionWhere.Body, DBEngine);
             ps.Params.AddRange(ps_where.Params);
 
-            string sql = DBEngine.CreateUpdateSql(DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName + QDBTools.ConvertSuffixTableName(TableSuffix)), setStr, ps_where.SqlStr,true);
-            if (!string.IsNullOrEmpty(TableSuffix))
-            {
-                sql = sql.Replace(DBEngine.EscapeStr(tableName), DBEngine.EscapeStr(tableName + QDBTools.ConvertSuffixTableName(TableSuffix)));
-            }
+            string sql = DBEngine.CreateUpdateSql(DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName ), setStr, ps_where.SqlStr, true);
+
+
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.ExecuteNonQuery(dbConnection, sql, ps.Params); ;
         }
 
         public async Task<int> UpdateAsync<TResult>(Expression<Func<T, TResult>> expressionNew, Expression<Func<T, bool>> expressionWhere)
         {
-            var tableName = EntityCache.TryGetTableName<T>();
 
             ParamSql ps = new ParamSql();
             var dic_update = ExpressionResolver.ResolveUpdateExpression(expressionNew, DBEngine);
@@ -601,8 +624,11 @@ namespace Q.DB.Query
             ps.Params.AddRange(ps_where.Params);
 
 
-            string dbTable = DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName + QDBTools.ConvertSuffixTableName(TableSuffix));
-            string sql = DBEngine.CreateUpdateSql(dbTable, setStr, ps_where.SqlStr,false);
+            string dbTable = DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName );
+            string sql = DBEngine.CreateUpdateSql(dbTable, setStr, ps_where.SqlStr, false);
+
+            sql = EntityCache.RestoreTableName<T>(ps.SqlStr);
+
             return await DBEngine.ExecuteNonQueryAsync(dbConnection, sql, ps.Params);
         }
 
@@ -613,9 +639,8 @@ namespace Q.DB.Query
 
         private string BuildSql()
         {
-            string tableName = EntityCache.TryGetTableName<T>();
             var fieldsStr = Fields ?? "*";
-            StringBuilder sb_sql = new StringBuilder($"select {fieldsStr.TrimStart(',')} from {DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName + QDBTools.ConvertSuffixTableName(TableSuffix))}");
+            StringBuilder sb_sql = new StringBuilder($"select {fieldsStr.TrimStart(',')} from {DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName)}");
             if (!string.IsNullOrEmpty(WhereStr))
             {
                 sb_sql.Append($" where {WhereStr}");
@@ -634,14 +659,14 @@ namespace Q.DB.Query
             }
             string sql = sb_sql.ToString();
 
+           
             return sql;
         }
 
         private string BuildSql_Custom_Fields_Func(string fields)
         {
-            var tableName = EntityCache.TryGetTableName<T>();
             var fieldsStr = fields ?? "*";
-            StringBuilder sb_sql = new StringBuilder($"select {fieldsStr.TrimStart(',')} from {DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName + QDBTools.ConvertSuffixTableName(TableSuffix))}");
+            StringBuilder sb_sql = new StringBuilder($"select {fieldsStr.TrimStart(',')} from {DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName )}");
             if (!string.IsNullOrEmpty(WhereStr))
             {
                 sb_sql.Append($" where {WhereStr}");
@@ -651,15 +676,15 @@ namespace Q.DB.Query
                 sb_sql.Append($" Group By {GroupByStr.TrimStart(',')}");
             }
             string sql = sb_sql.ToString();
+           
 
             return sql;
         }
         private string BuildSql_Custom_LimitCount(int count)
         {
-            var tableName = EntityCache.TryGetTableName<T>();
             var fieldsStr = Fields ?? "*";
 
-            StringBuilder sb_sql = new StringBuilder($"{fieldsStr.TrimStart(',')} from  {DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName + QDBTools.ConvertSuffixTableName(TableSuffix))}");
+            StringBuilder sb_sql = new StringBuilder($"{fieldsStr.TrimStart(',')} from  {DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName )}");
             if (!string.IsNullOrEmpty(WhereStr))
             {
                 sb_sql.Append($" where {WhereStr}");
@@ -673,17 +698,18 @@ namespace Q.DB.Query
                 sb_sql.Append($" Order By {OrderByStr.TrimStart(',')}");
             }
             string sql = "select " + DBEngine.ConvertSelectLimit(sb_sql.ToString(), count);
+          
             return sql;
         }
 
         private string BuildSql_Custom_LimitPage(int pageNum, int pageSize)
         {
-            var nea = EntityCache.TryGetInfo<T>();
             var fieldsStr = Fields ?? "*";
 
             string where = string.Empty;
             if (!string.IsNullOrEmpty(WhereStr))
             {
+
                 where = " where " + WhereStr;
             }
 
@@ -698,15 +724,16 @@ namespace Q.DB.Query
             {
                 orderBy = $" Order By {OrderByStr.TrimStart(',')}";
             }
-            else if (nea.PrimaryKeys.Count > 0)
+            else if (TEntityInfo.PrimaryKeys.Count > 0)
 
             {
-                orderBy = $" Order By {string.Join(',', nea.PrimaryKeys)}";
+                orderBy = $" Order By {string.Join(',', TEntityInfo.PrimaryKeys)}";
 
             }
 
+           
 
-            return DBEngine.CreatePageSql(DBEngine.EscapeStr(dbConnection.SqlConnection.Database, nea.TableName + QDBTools.ConvertSuffixTableName(TableSuffix)), fieldsStr.Trim(','), where, groupBy, orderBy, pageNum, pageSize, dbConnection.SqlConnection.ServerVersion);
+            return DBEngine.CreatePageSql(DBEngine.EscapeStr(dbConnection.SqlConnection.Database, tableName), fieldsStr.Trim(','), where, groupBy, orderBy, pageNum, pageSize, dbConnection.SqlConnection.ServerVersion);
         }
         /// <summary>
         /// 流式查询接口
@@ -721,6 +748,8 @@ namespace Q.DB.Query
             {
                 sql += " " + formatStr;
             }
+
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.QueryStream(dbConnection, sql, SqlParams);
         }
 
@@ -731,6 +760,8 @@ namespace Q.DB.Query
             {
                 sql += " " + formatStr;
             }
+
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return await DBEngine.QueryStreamAsync(dbConnection, sql, SqlParams);
         }
 
@@ -753,6 +784,8 @@ namespace Q.DB.Query
             {
                 sql += " " + formatStr;
             }
+
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return DBEngine.QueryStream(dbConnection, sql, SqlParams);
         }
 
@@ -763,12 +796,16 @@ namespace Q.DB.Query
             {
                 sql += " " + formatStr;
             }
+
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             return await DBEngine.QueryStreamAsync(dbConnection, sql, SqlParams);
         }
 
         public async Task ExportToCsvFileAsync(string filePath)
         {
             string sql = BuildSql();
+
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             await DBEngine.ExportToCsvFileAsync(dbConnection, sql, filePath, SqlParams);
         }
 
@@ -781,6 +818,8 @@ namespace Q.DB.Query
         public async Task ExportToCsvFileAsync(int pageNum, int pageSize, string filePath)
         {
             var sql = BuildSql_Custom_LimitPage(pageNum, pageSize);
+
+            sql = EntityCache.RestoreTableName<T>(sql, TableSuffix);
             await DBEngine.ExportToCsvFileAsync(dbConnection, sql, filePath, SqlParams);
         }
     }

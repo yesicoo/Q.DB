@@ -909,7 +909,7 @@ namespace Q.DB
                             ps.Params.AddRange(pr.Params);
                             if (((MemberExpression)arg).Member.Name != member.Name)
                             {
-                                pr.SqlStr += $" as '{member.Name}'";
+                                pr.SqlStr += $" as  {member.Name}";
                             }
                             sqls.Add(pr.SqlStr);
                         }
@@ -924,7 +924,7 @@ namespace Q.DB
                             }
                             else
                             {
-                                sqls.Add($"{argsql.SqlStr} as '{member.Name}'");
+                                sqls.Add($"{argsql.SqlStr} as {member.Name}");
                             }
                         }
                         break;
@@ -935,12 +935,12 @@ namespace Q.DB
                         {
                             var mu = ResolveExpression(arg, engine);
                             ps.Params.AddRange(mu.Params);
-                            sqls.Add($"{mu.SqlStr} as '{member.Name}'");
+                            sqls.Add($"{mu.SqlStr} as  {member.Name}");
                         }
                         break;
                     default:
                         {
-                            sqls.Add($"{arg} as '{member.Name}'");
+                            sqls.Add($"{arg} as  {member.Name}");
                         }
                         break;
                 }
@@ -962,7 +962,7 @@ namespace Q.DB
             {
                 var assignment = (MemberAssignment)item;
                 var sql = ResolveExpression(assignment.Expression, engine);
-                list_str.Add($"{sql.SqlStr} as '{assignment.Member.Name}'");
+                list_str.Add($"{sql.SqlStr} as  {assignment.Member.Name}");
             }
             ps.SqlStr = string.Join(",", list_str);
             return ps;
@@ -1218,9 +1218,7 @@ namespace Q.DB
                         var field_ps = ResolveExpression(func.Object, engine);
                         ps.Params.AddRange(field_ps.Params);
                         var value_ps = ResolveExpression(func.Arguments[0], engine);
-                        string key = value_ps.SqlStr.TrimStart('@');
-                        string value = QDBTools.SafeKeyWord(value_ps.GetParamValue<string>(key));
-                        ps.Params.Add(new ParamItem(key, value));
+                        ps.Params.AddRange(value_ps.Params);
                         ps.SqlStr = $"{field_ps.SqlStr} like  concat('%',{value_ps.SqlStr},'%')";
                     }
                     break;
@@ -1231,9 +1229,7 @@ namespace Q.DB
                         var field_ps = ResolveExpression(func.Object, engine);
                         ps.Params.AddRange(field_ps.Params);
                         var value_ps = ResolveExpression(func.Arguments[0], engine);
-                        string key = value_ps.SqlStr.TrimStart('@');
-                        string value = QDBTools.SafeKeyWord(value_ps.GetParamValue<string>(key));
-                        ps.Params.Add(new ParamItem(key, value));
+                        ps.Params.AddRange(value_ps.Params);
                         ps.SqlStr = $"{field_ps.SqlStr} like concat({value_ps.SqlStr},'%')";
                     }
                     break;
@@ -1242,9 +1238,7 @@ namespace Q.DB
                         var field_ps = ResolveExpression(func.Object, engine);
                         ps.Params.AddRange(field_ps.Params);
                         var value_ps = ResolveExpression(func.Arguments[0], engine);
-                        string key = value_ps.SqlStr.TrimStart('@');
-                        string value = QDBTools.SafeKeyWord(value_ps.GetParamValue<string>(key));
-                        ps.Params.Add(new ParamItem(key, value));
+                        ps.Params.AddRange(value_ps.Params);
                         ps.SqlStr = $"{field_ps.SqlStr} like  concat('%',{value_ps.SqlStr})";
                     }
                     break;

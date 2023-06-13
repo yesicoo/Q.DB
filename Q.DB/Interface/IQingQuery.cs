@@ -222,21 +222,21 @@ namespace Q.DB.Interface
         /// <typeparam name="T2"></typeparam>
         /// <param name="expressionJoinOn"></param>
         /// <returns></returns>
-        IQingQuery<T, T2> LeftJoin<T2>(Expression<Func<T, T2, bool>> expressionJoinOn);
+        IQingQuery<T, T2> LeftJoin<T2>(Expression<Func<T, T2, bool>> expressionJoinOn, string t2TableSuffix = null);
         /// <summary>
         /// 右联
         /// </summary>
         /// <typeparam name="T2"></typeparam>
         /// <param name="expressionJoinOn"></param>
         /// <returns></returns>
-        IQingQuery<T, T2> RightJoin<T2>(Expression<Func<T, T2, bool>> expressionJoinOn);
+        IQingQuery<T, T2> RightJoin<T2>(Expression<Func<T, T2, bool>> expressionJoinOn, string t2TableSuffix = null);
         /// <summary>
         /// 内联
         /// </summary>
         /// <typeparam name="T2"></typeparam>
         /// <param name="expressionJoinOn"></param>
         /// <returns></returns>
-        IQingQuery<T, T2> InnerJoin<T2>(Expression<Func<T, T2, bool>> expressionJoinOn);
+        IQingQuery<T, T2> InnerJoin<T2>(Expression<Func<T, T2, bool>> expressionJoinOn, string t2TableSuffix = null);
 
         /// <summary>
         /// 过滤器解析

@@ -49,12 +49,14 @@ namespace Q.DB
                 if (Attribute.IsDefined(type, typeof(QingEntityAttribute)))
                 {
                     var qea = (QingEntityAttribute)Attribute.GetCustomAttribute(type, typeof(QingEntityAttribute));
-                    cache.TableName = qea.TableName;
+                    cache.TableName = type.FullName;// QDBTools.RandomCode(8, 0);
+                    cache.TableRealName = qea.TableName;
                     cache.Remark = qea.Remark;
                 }
                 else
                 {
-                    cache.TableName = type.Name;
+                    cache.TableName =  type.FullName;// QDBTools.RandomCode(8, 0);
+                    cache.TableRealName = type.Name;
                 }
 
 
@@ -126,6 +128,42 @@ namespace Q.DB
         public static string TryGetTableName(Type type)
         {
             return TryGetInfo(type).TableName;
+        }
+
+        public static string TryGetRealTableName<T>()
+        {
+
+            return TryGetInfo<T>().TableRealName;
+        }
+
+        public static string TryGetRealTableName(Type type)
+        {
+            return TryGetInfo(type).TableRealName;
+        }
+
+        public static string RestoreTableName<T>(string sql,string tableSuffix=null)
+        {
+            var nea= TryGetInfo<T>();
+            if (tableSuffix == null)
+            {
+                return sql.Replace(nea.TableName, nea.TableRealName);
+            }
+            else
+            {
+                return sql.Replace(nea.TableName, nea.TableRealName+ QDBTools.ConvertSuffixTableName(tableSuffix));
+            }
+        }
+        public static string RestoreTableName(Type type,string sql, string tableSuffix = null)
+        {
+            var nea = TryGetInfo(type);
+            if (tableSuffix == null)
+            {
+                return sql.Replace(nea.TableName, nea.TableRealName);
+            }
+            else
+            {
+                return sql.Replace(nea.TableName, nea.TableRealName + QDBTools.ConvertSuffixTableName(tableSuffix));
+            }
         }
 
         public static List<DBIndexInfo> Index<T>()

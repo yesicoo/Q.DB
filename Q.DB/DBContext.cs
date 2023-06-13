@@ -182,9 +182,6 @@ namespace Q.DB
             try
             {
 
-
-                var tableName = EntityCache.TryGetTableName<T>();
-
                 ParamSql ps = new ParamSql();
                 var dic_update = ExpressionResolver.ResolveUpdateExpression(expressionNew, Engine);
                 StringBuilder sb_setStr = new StringBuilder();
@@ -197,13 +194,9 @@ namespace Q.DB
                 var ps_where = ExpressionResolver.ResolveExpression(expressionWhere.Body, Engine);
                 ps.Params.AddRange(ps_where.Params);
 
-                string sql = $"update {Engine.EscapeStr(tableName + QDBTools.ConvertSuffixTableName(tableSuffix))} set {setStr} where {ps_where.SqlStr};";
-                if (!string.IsNullOrEmpty(tableSuffix))
-                {
-                    string oldTableName = Engine.EscapeStr(tableName);
-                    string newTableName = Engine.EscapeStr(tableName + QDBTools.ConvertSuffixTableName(tableSuffix));
-                    sql = sql.Replace(oldTableName, newTableName);
-                }
+                string sql = $"update {Engine.EscapeStr(EntityCache.TryGetTableName<T>())} set {setStr} where {ps_where.SqlStr};";
+
+                sql = EntityCache.RestoreTableName<T>(sql, tableSuffix);
                 return Engine.ExecuteNonQuery(ConnectionItem, sql, ps.Params);
             }
             catch (Exception)
@@ -218,7 +211,6 @@ namespace Q.DB
             try
             {
 
-                var tableName = EntityCache.TryGetTableName<T>();
                 ParamSql ps = new ParamSql();
                 var dic_update = ExpressionResolver.ResolveUpdateExpression(expressionNew, Engine);
                 StringBuilder sb_setStr = new StringBuilder();
@@ -231,8 +223,8 @@ namespace Q.DB
                 var ps_where = ExpressionResolver.ResolveExpression(expressionWhere.Body, Engine);
                 ps.Params.AddRange(ps_where.Params);
 
-                string sql = $"update {tableName}{QDBTools.ConvertSuffixTableName(tableSuffix)} set {setStr} where {ps_where.SqlStr};";
-
+                string sql = $"update {Engine.EscapeStr(EntityCache.TryGetTableName<T>())} set {setStr} where {ps_where.SqlStr};";
+                sql = EntityCache.RestoreTableName<T>(sql, tableSuffix);
                 return await Engine.ExecuteNonQueryAsync(ConnectionItem, sql, ps.Params);
             }
             catch (Exception)
@@ -244,9 +236,10 @@ namespace Q.DB
 
         public int CompareChangeToUpdate<T>(T dest, T source, Expression<Func<T, bool>> where, string tableSuffix = null)
         {
-            var ps = QDBTools.CreateCompareChangeSql(dest, source, where, Engine, tableSuffix);
+            var ps = QDBTools.CreateCompareChangeSql(dest, source, where, Engine);
             if (ps.SqlStr != null)
             {
+                ps.SqlStr = EntityCache.RestoreTableName<T>(ps.SqlStr, tableSuffix);
                 return Engine.ExecuteNonQuery(ConnectionItem, ps.SqlStr, ps.Params);
             }
             else
@@ -257,9 +250,10 @@ namespace Q.DB
 
         public async Task<int> CompareChangeToUpdateAsync<T>(T dest, T source, Expression<Func<T, bool>> where, string tableSuffix = null)
         {
-            var ps = QDBTools.CreateCompareChangeSql(dest, source, where, Engine, tableSuffix);
+            var ps = QDBTools.CreateCompareChangeSql(dest, source, where, Engine);
             if (ps.SqlStr != null)
             {
+                ps.SqlStr = EntityCache.RestoreTableName<T>(ps.SqlStr, tableSuffix);
                 return await Engine.ExecuteNonQueryAsync(ConnectionItem, ps.SqlStr, ps.Params);
             }
             else
@@ -272,7 +266,7 @@ namespace Q.DB
         #region 创建表
         public bool CreateTable<T>(string tableSuffix = null, bool force = false, string tableEngine = "Default", string[] additionals = null)
         {
-            var tableName = EntityCache.TryGetTableName<T>() + QDBTools.ConvertSuffixTableName(tableSuffix);
+            var tableName = EntityCache.TryGetRealTableName<T>() + QDBTools.ConvertSuffixTableName(tableSuffix);
             return CreateTableByName<T>(tableName, force, tableEngine, additionals);
 
         }
@@ -283,7 +277,7 @@ namespace Q.DB
         }
         public bool CreateTableIfNotExists<T>(string tableSuffix = null, string tableEngine = "Default", string[] additionals = null)
         {
-            var tableName = EntityCache.TryGetTableName<T>() + QDBTools.ConvertSuffixTableName(tableSuffix);
+            var tableName = EntityCache.TryGetRealTableName<T>() + QDBTools.ConvertSuffixTableName(tableSuffix);
             return CreateTableIfNotExistsByName<T>(tableName, tableEngine, additionals);
 
         }
@@ -308,7 +302,7 @@ namespace Q.DB
         /// <returns></returns>
         public bool CheckTableExisted<T>(string tableSuffix = null)
         {
-            var tableName = EntityCache.TryGetTableName<T>() + QDBTools.ConvertSuffixTableName(tableSuffix);
+            var tableName = EntityCache.TryGetRealTableName<T>() + QDBTools.ConvertSuffixTableName(tableSuffix);
             return Engine.CheckTableExisted(ConnectionItem, tableName);
         }
 

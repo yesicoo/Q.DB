@@ -81,7 +81,7 @@ namespace Q.DB.Cache
            
                 var timeKey = new TimeKey() { Key = DBName, LastTime = DateTime.Now };
                 _dts.AddOrUpdate(timeKey, tResult, (oldkey, oldvalue) => tResult);
-                SqlLogUtil.SendLog(LogType.Msg, $"加载 {timeKey.Key}[{timeKey.LastTime}]({EntityCache.TryGetTableName<T>() })临时缓存({_timeOut}min) 共{tResult.Count}条");
+                SqlLogUtil.SendLog(LogType.Msg, $"加载 {timeKey.Key}[{timeKey.LastTime}]({EntityCache.TryGetRealTableName<T>() })临时缓存({_timeOut}min) 共{tResult.Count}条");
                 return tResult;
             }
         }
@@ -103,7 +103,7 @@ namespace Q.DB.Cache
             var exprieKeys = _dts.Where(x => x.Key.LastTime < DateTime.Now.AddMinutes(-_timeOut)).Select(x => x.Key);
             foreach (var exprieKey in exprieKeys)
             {
-                SqlLogUtil.SendLog(LogType.Msg, $"{exprieKey.Key}[{exprieKey.LastTime}]({EntityCache.TryGetTableName<T>()})缓存超时 清理数据");
+                SqlLogUtil.SendLog(LogType.Msg, $"{exprieKey.Key}[{exprieKey.LastTime}]({EntityCache.TryGetRealTableName<T>()})缓存超时 清理数据");
                 _dts.TryRemove(exprieKey, out var removeData);
             }
         }

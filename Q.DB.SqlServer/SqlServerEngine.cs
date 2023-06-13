@@ -130,7 +130,7 @@ namespace Q.DB.SqlServer
 
         public long BulkInsert<T>(DBConnectionItem connectionItem, List<T> ts, string tableSuffix, int splitCount)
         {
-            var tableName = EntityCache.TryGetTableName<T>() + QDBTools.ConvertSuffixTableName(tableSuffix);
+            var tableName = EntityCache.TryGetRealTableName<T>() + QDBTools.ConvertSuffixTableName(tableSuffix);
 
             long result = 0;
             if (ts.Count > splitCount)
@@ -187,7 +187,7 @@ namespace Q.DB.SqlServer
         public async Task<long> BulkInsertAsync<T>(DBConnectionItem connectionItem, List<T> ts, string tableSuffix, int splitCount)
         {
 
-            var tableName = EntityCache.TryGetTableName<T>() + QDBTools.ConvertSuffixTableName(tableSuffix);
+            var tableName = EntityCache.TryGetRealTableName<T>() + QDBTools.ConvertSuffixTableName(tableSuffix);
 
             long result = 0;
             if (ts.Count > splitCount)
